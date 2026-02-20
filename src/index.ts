@@ -1,6 +1,6 @@
-import Character from "./Character";
+import Game from "./Game";
 
 let canvas = document.getElementById("game") as HTMLCanvasElement;
 let ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-const character = new Character(canvas, ctx);
-character.loadImage();
+const game = new Game(canvas, ctx);
+game.loadImage();

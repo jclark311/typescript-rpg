@@ -75,7 +75,6 @@ export default class Character {
         this.keyPresses[e.key] = true;
     }
 
-    
     keyUpListener(e: KeyboardEvent) {
         this.keyPresses[e.key] = false;
     }
@@ -94,9 +93,7 @@ export default class Character {
         this.currentDirection = direction;
     }
 
-    gameLoop() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
+    update() {
         let hasMoved = false;
 
         if (this.keyPresses.w) {
@@ -130,13 +127,5 @@ export default class Character {
         }
 
         this.drawFrame(this.cycleLoop[this.currentDirection][this.currentLoopIndex], 0, this.positionX, this.positionY);
-        requestAnimationFrame(() => this.gameLoop());
-    }
-
-    loadImage() {
-        this.img.src = "assets/images/walk_cycle.png";
-        this.img.onload = () => {
-            requestAnimationFrame(() => this.gameLoop());
-        }
     }
 }
