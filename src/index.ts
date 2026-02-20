@@ -12,8 +12,10 @@ let ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
 const scaledWidth = width * scale;
 const scaledHeight = height * scale;
-const cycleLoop = [0, 1, 0, 2];
+const cycleLoop = [8, 9, 8, 11];
 let currentLoopIndex = 0;
+// Slow down the animation
+let frameCount = 0;
 
 function drawFrame(frameX: number, frameY: number, canvasX: number, canvasY: number) {
     ctx.drawImage(img, frameX * width, frameY * height, width, height, canvasX, canvasY, scaledWidth, scaledHeight);
@@ -21,6 +23,12 @@ function drawFrame(frameX: number, frameY: number, canvasX: number, canvasY: num
 
 
 function step() {
+    frameCount++;
+    if (frameCount < 10) {
+        window.requestAnimationFrame(step);
+        return;
+    }
+    frameCount = 0;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     // Draw
     drawFrame(cycleLoop[currentLoopIndex], 0, 0, 0);
