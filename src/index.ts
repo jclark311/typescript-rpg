@@ -1,3 +1,6 @@
+import { constants } from "./utils/constants";
+const { scale, width, height } = constants;
+
 let img = new Image();
 img.src = "assets/images/walk_cycle.png";
 img.onload = function() {
@@ -7,7 +10,9 @@ img.onload = function() {
 let canvas = document.getElementById("game") as HTMLCanvasElement;
 let ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
+const scaledWidth = width * scale;
+const scaledHeight = height * scale;
 function init() {
-    // 
-    ctx.drawImage(img, 0, 0, 16, 24, 0, 0, 16, 24);
+    // Draw
+    ctx.drawImage(img, 0, 0, width, height, 0, 0, scaledWidth, scaledHeight);
 }
