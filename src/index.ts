@@ -25,12 +25,13 @@ const cycleLoop = [upLoop, rightLoop, downLoop, leftLoop];
 let currentLoopIndex = 0;
 // Slow down the animation
 let frameCount = 0;
-const FACING_UP = 0;
-const FACING_RIGHT = 4;
-const FACING_DOWN = 8;
-const FACING_LEFT = 12;
 
+const FACING_UP = 0;
+const FACING_RIGHT = 1;
+const FACING_DOWN = 2;
+const FACING_LEFT = 3;
 let currentDirection = FACING_DOWN;
+
 let keyPresses = {
     'ArrowUp': false,
     'ArrowRight': false,
@@ -41,6 +42,7 @@ let keyPresses = {
     's': false,
     'd': false,
 } as Record<string, boolean>;
+
 const MOVEMENT_SPEED = 1;
 let positionX = 0;
 let positionY = 0;
@@ -61,51 +63,43 @@ function drawFrame(frameX: number, frameY: number, canvasX: number, canvasY: num
     ctx.drawImage(img, frameX * width, frameY * height, width, height, canvasX, canvasY, scaledWidth, scaledHeight);
 }
 
+const FRAME_LIMIT = 12;
+
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    let hasMoved = false;
 
     if (keyPresses.w) {
         positionY -= MOVEMENT_SPEED;
         currentDirection = FACING_UP;
+        hasMoved = true;
     } else if (keyPresses.s) {
         positionY += MOVEMENT_SPEED;
         currentDirection = FACING_DOWN;
+        hasMoved = true;
     }
     if (keyPresses.a) {
         positionX -= MOVEMENT_SPEED;
         currentDirection = FACING_LEFT;
+        hasMoved = true;
     } else if (keyPresses.d) {
         positionX += MOVEMENT_SPEED;
         currentDirection = FACING_RIGHT;
+        hasMoved = true;
     }
 
-    drawFrame(currentDirection, 0, positionX, positionY);
+    if (hasMoved) {
+        frameCount++;
+        if (frameCount >= FRAME_LIMIT) {
+            frameCount = 0;
+            currentLoopIndex++;
+            if (currentLoopIndex >= cycleLoop.length) {
+                currentLoopIndex = 0;
+            }
+        }
+    }
 
+    drawFrame(cycleLoop[currentDirection][currentLoopIndex], 0, positionX, positionY);
     window.requestAnimationFrame(gameLoop);
-}
-
-
-function step() {
-    frameCount++;
-    if (frameCount < 10) {
-        window.requestAnimationFrame(step);
-        return;
-    }
-    frameCount = 0;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // Draw
-    drawFrame(cycleLoop[currentDirection][currentLoopIndex], 0, 0, 0);
-    currentLoopIndex++;
-    if (currentLoopIndex >= cycleLoop.length) {
-        currentLoopIndex = 0;
-        currentDirection++;
-    }
-    if (currentDirection >= 4) {
-        currentDirection = 0;
-    }
-    window.requestAnimationFrame(step);
-}
-
-function init() {
-    window.requestAnimationFrame(step);
 }
