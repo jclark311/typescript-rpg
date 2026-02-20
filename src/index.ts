@@ -12,7 +12,25 @@ let ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
 const scaledWidth = width * scale;
 const scaledHeight = height * scale;
-function init() {
+const cycleLoop = [0, 1, 0, 2];
+let currentLoopIndex = 0;
+
+function drawFrame(frameX: number, frameY: number, canvasX: number, canvasY: number) {
+    ctx.drawImage(img, frameX * width, frameY * height, width, height, canvasX, canvasY, scaledWidth, scaledHeight);
+}
+
+
+function step() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     // Draw
-    ctx.drawImage(img, 0, 0, width, height, 0, 0, scaledWidth, scaledHeight);
+    drawFrame(cycleLoop[currentLoopIndex], 0, 0, 0);
+    currentLoopIndex++;
+    if (currentLoopIndex >= cycleLoop.length) {
+        currentLoopIndex = 0;
+    }
+    window.requestAnimationFrame(step);
+}
+
+function init() {
+    window.requestAnimationFrame(step);
 }
