@@ -2,17 +2,12 @@ import { constants } from "./utils/constants";
 const { scale, width, height } = constants;
 
 let img = new Image();
-img.src = "assets/images/walk_cycle.png";
-img.onload = function() {
-    window.requestAnimationFrame(gameLoop);
-}
 
 let canvas = document.getElementById("game") as HTMLCanvasElement;
 let ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
 const scaledWidth = width * scale;
 const scaledHeight = height * scale;
-
 
 const upLoop = [0, 1, 0, 3];
 const rightLoop = [4, 5, 4, 7];
@@ -59,11 +54,30 @@ function keyUpListener(e: KeyboardEvent) {
     keyPresses[e.key] = false;
 }
 
+function loadImage() {
+    img.src = "assets/images/walk_cycle.png";
+    img.onload = function() {
+        window.requestAnimationFrame(gameLoop);
+    }
+}
+
 function drawFrame(frameX: number, frameY: number, canvasX: number, canvasY: number) {
     ctx.drawImage(img, frameX * width, frameY * height, width, height, canvasX, canvasY, scaledWidth, scaledHeight);
 }
 
+loadImage();
+
 const FRAME_LIMIT = 12;
+
+function moveCharacter(deltaX: number, deltaY: number, direction: number) {
+    if (positionX + deltaX > 0 && positionX + scaledWidth + deltaX < canvas.width) {
+        positionX += deltaX;
+    }
+    if (positionY + deltaY > 0 && positionY + scaledHeight + deltaY < canvas.height) {
+        positionY += deltaY;
+    }
+    currentDirection = direction;
+}
 
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -71,21 +85,17 @@ function gameLoop() {
     let hasMoved = false;
 
     if (keyPresses.w) {
-        positionY -= MOVEMENT_SPEED;
-        currentDirection = FACING_UP;
+        moveCharacter(0, -MOVEMENT_SPEED, FACING_UP);
         hasMoved = true;
     } else if (keyPresses.s) {
-        positionY += MOVEMENT_SPEED;
-        currentDirection = FACING_DOWN;
+        moveCharacter(0, MOVEMENT_SPEED, FACING_DOWN);
         hasMoved = true;
     }
     if (keyPresses.a) {
-        positionX -= MOVEMENT_SPEED;
-        currentDirection = FACING_LEFT;
+        moveCharacter(-MOVEMENT_SPEED, 0, FACING_LEFT);
         hasMoved = true;
     } else if (keyPresses.d) {
-        positionX += MOVEMENT_SPEED;
-        currentDirection = FACING_RIGHT;
+        moveCharacter(MOVEMENT_SPEED, 0, FACING_RIGHT);
         hasMoved = true;
     }
 
