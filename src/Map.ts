@@ -1,6 +1,18 @@
+import GameObject from "./GameObject";
+
+export type MapConfig = {
+    gameObjects: Record<string, GameObject>;
+}
+
 export default class Map {
     canvas: HTMLCanvasElement;
     ctx: CanvasRenderingContext2D;
+    gameObjects: Record<string, GameObject>;
+    tileAtlas: HTMLImageElement;
+    cols: number;
+    rows: number;
+    tileSize: number;
+    layers: number[][];
     gameMap: number[];
     tileW: number;
     tileH: number;
@@ -10,9 +22,34 @@ export default class Map {
     frameCount: number;
     framesLastSecond: number;
 
-    constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
+    constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, config: MapConfig) {
         this.canvas = canvas;
         this.ctx = ctx;
+        this.gameObjects = config.gameObjects;
+        this.tileAtlas = new Image();
+        this.tileAtlas.src = "assets/images/tiles.png"
+        this.cols = 8;
+        this.rows = 8;
+        this.tileSize = 64;
+        this.layers = [[
+            3, 3, 3, 3, 3, 3, 3, 3,
+            3, 1, 1, 1, 1, 1, 1, 3,
+            3, 1, 1, 1, 1, 2, 1, 3,
+            3, 1, 1, 1, 1, 1, 1, 3,
+            3, 1, 1, 2, 1, 1, 1, 3,
+            3, 1, 1, 1, 2, 1, 1, 3,
+            3, 1, 1, 1, 2, 1, 1, 3,
+            3, 3, 3, 1, 2, 3, 3, 3
+        ], [
+            4, 3, 3, 3, 3, 3, 3, 4,
+            4, 0, 0, 0, 0, 0, 0, 4,
+            4, 0, 0, 0, 0, 0, 0, 4,
+            4, 0, 0, 5, 0, 0, 0, 4,
+            4, 0, 0, 0, 0, 0, 0, 4,
+            4, 0, 0, 0, 0, 0, 0, 4,
+            4, 4, 4, 0, 5, 4, 4, 4,
+            0, 3, 3, 0, 0, 3, 3, 3
+        ]];
         this.gameMap = [
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 1, 1, 1, 0, 1, 1, 1, 1, 0,
@@ -32,6 +69,10 @@ export default class Map {
         this.currentSecond = 0; 
         this.frameCount = 0; 
         this.framesLastSecond = 0;
+    }
+
+    getTile(layer: number, column: number, row: number) {
+        return this.layers[layer][row * this.cols + column];
     }
 
     draw() {
@@ -59,8 +100,6 @@ export default class Map {
                 this.ctx.fillRect(x * this.tileW, y * this.tileH, this.tileW, this.tileH);
             }
         }
-
-        // requestAnimationFrame(() => this.draw());
     }
 }
 
