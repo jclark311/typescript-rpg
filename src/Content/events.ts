@@ -1,0 +1,23 @@
+export const EVENT = {
+    START_LEVEL:         0,
+    PLAYER_JOIN:         1,
+    PLAYER_LEAVE:        2,
+    PLAYER_EXITING:      3,
+    PLAYER_EXIT:         4,
+    PLAYER_DEATH:        5,
+    PLAYER_NUKE:         6,
+    PLAYER_FIRE:         7,
+    PLAYER_HURT:         8,
+    PLAYER_HEAL:         9,
+    MONSTER_DEATH:      10,
+    MONSTER_FIRE:       11,
+    GENERATOR_DEATH:    12,
+    DOOR_OPENING:       13,
+    DOOR_OPEN:          14,
+    TREASURE_COLLECTED: 15,
+    PLAYER_COLLIDE:     16,
+    MONSTER_COLLIDE:    17,
+    WEAPON_COLLIDE:     18,
+    FX_FINISHED:        19,
+    HIGH_SCORE:         20
+}

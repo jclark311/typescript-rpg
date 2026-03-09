@@ -1,17 +1,10 @@
 import GameObject from './GameObject';
+import { utils } from './utils/Utils';
 
 import { constants } from "./utils/constants";
 const { scale, width, height } = constants;
 
-type SpriteConfig = {
-    gameObject: any; 
-    imgSrc: string;
-    animations: Record<string, number[][]>;
-    currentAnimation?: string;
-    animationFrameLimit?: number;
-}
-
-type Config = {
+export type SpriteConfig = {
     src: string;
     animations?: Record<string, number[][]>;
     currentAnimation?: string;
@@ -20,6 +13,8 @@ type Config = {
 }
 
 export default class Sprite {
+    // static idCounter = 0;
+    // id: number;
     image: HTMLImageElement;
     scaledWidth: number;
     scaledHeight: number;
@@ -31,7 +26,8 @@ export default class Sprite {
     animationFrameProgress: number
     gameObject: GameObject;
 
-    constructor(config: Config) {
+    constructor(config: SpriteConfig) {
+        // this.id = Sprite.idCounter++;
         // Set up the image
         this.image = new Image();
         this.image.src = config.src;
@@ -69,7 +65,6 @@ export default class Sprite {
     }
 
     setAnimation(key: string) {
-        console.log('setAnimation: ', key)
         if (this.currentAnimation !== key) {
             this.currentAnimation = key;
             this.currentAnimationFrame = 0;
@@ -93,9 +88,9 @@ export default class Sprite {
         }
     }
 
-    draw(ctx: CanvasRenderingContext2D) {
-        const x = this.gameObject.positionX;
-        const y = this.gameObject.positionY;
+    draw(ctx: CanvasRenderingContext2D, cameraPerson?: GameObject) {
+        const x = this.gameObject.positionX - width + utils.withGrid(10.5) - cameraPerson.positionX;
+        const y = this.gameObject.positionY - height + utils.withGrid(6) - cameraPerson.positionY;
 
         const [frameX, frameY] = this.frame;
 

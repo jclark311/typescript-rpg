@@ -1,104 +1,146 @@
-import GameObject from "./GameObject";
+import Game from "./Game";
+import GameObject, { GameObjectConfig } from "./GameObject";
+import Sprite from "./Sprite";
+import EventEmitter, { EventListener } from "./EventEmitter";
+import GameEvent from "./GameEvent";
+import { utils } from "./utils/Utils";
+import Character from "./Character";
+
+export type ConfigObject = {
+    id?: string;
+    type?: string;
+    isPlayerControlled?: boolean;
+    positionX?: number;
+    positionY?: number;
+}
 
 export type MapConfig = {
-    gameObjects: Record<string, GameObject>;
+    gameObjects?: Record<string, GameObject>;
+    configObjects: Record<string, ConfigObject>;
+    cutsceneSpaces?: any;
+    walls?: Record<string, boolean>;
+    tileAtlasSrc: string;
+    cols: number;
+    rows: number;
+    atlasCol: number;
+    tileSize: number;
+    layers: number[][];
+    collisionLayer: number[][];
 }
 
 export default class Map {
     canvas: HTMLCanvasElement;
     ctx: CanvasRenderingContext2D;
-    gameObjects: Record<string, GameObject>;
+    game: Game;
+    gameObjects?: Record<string, GameObject>;
+    configObjects: Record<string, ConfigObject>;
+    cutsceneSpaces
+    walls: Record<string, boolean>;
     tileAtlas: HTMLImageElement;
     cols: number;
     rows: number;
     tileSize: number;
+    atlasCol: number;
     layers: number[][];
-    gameMap: number[];
-    tileW: number;
-    tileH: number;
-    mapW: number;
-    mapH: number;
-    currentSecond: number;
-    frameCount: number;
-    framesLastSecond: number;
+    collisionLayer: number[][];
+    isPaused: boolean;
+    eventEmitter: EventEmitter;
+    isCutscenePlaying: boolean;
 
     constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, config: MapConfig) {
         this.canvas = canvas;
         this.ctx = ctx;
-        this.gameObjects = config.gameObjects;
+        this.game = null;
+        this.gameObjects = {};
+        this.configObjects = config.configObjects;
+        this.cutsceneSpaces = config.cutsceneSpaces || {};
+        this.walls = config.walls || {};
         this.tileAtlas = new Image();
-        this.tileAtlas.src = "assets/images/tiles.png"
-        this.cols = 8;
-        this.rows = 8;
-        this.tileSize = 64;
-        this.layers = [[
-            3, 3, 3, 3, 3, 3, 3, 3,
-            3, 1, 1, 1, 1, 1, 1, 3,
-            3, 1, 1, 1, 1, 2, 1, 3,
-            3, 1, 1, 1, 1, 1, 1, 3,
-            3, 1, 1, 2, 1, 1, 1, 3,
-            3, 1, 1, 1, 2, 1, 1, 3,
-            3, 1, 1, 1, 2, 1, 1, 3,
-            3, 3, 3, 1, 2, 3, 3, 3
-        ], [
-            4, 3, 3, 3, 3, 3, 3, 4,
-            4, 0, 0, 0, 0, 0, 0, 4,
-            4, 0, 0, 0, 0, 0, 0, 4,
-            4, 0, 0, 5, 0, 0, 0, 4,
-            4, 0, 0, 0, 0, 0, 0, 4,
-            4, 0, 0, 0, 0, 0, 0, 4,
-            4, 4, 4, 0, 5, 4, 4, 4,
-            0, 3, 3, 0, 0, 3, 3, 3
-        ]];
-        this.gameMap = [
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 1, 1, 1, 0, 1, 1, 1, 1, 0,
-            0, 1, 0, 0, 0, 1, 0, 0, 0, 0,
-            0, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-            0, 1, 0, 1, 0, 0, 0, 1, 1, 0,
-            0, 1, 0, 1, 0, 1, 0, 0, 1, 0,
-            0, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-            0, 1, 0, 0, 0, 0, 0, 1, 0, 0,
-            0, 1, 1, 1, 0, 1, 1, 1, 1, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-        ];
-        this.tileW = 40;
-        this.tileH = 40;
-        this.mapW = 10; 
-        this.mapH = 10;
-        this.currentSecond = 0; 
-        this.frameCount = 0; 
-        this.framesLastSecond = 0;
+        this.tileAtlas.src = config.tileAtlasSrc;
+        this.cols = config.cols;
+        this.rows = config.rows;
+        this.tileSize = config.tileSize;
+        this.atlasCol = config.atlasCol;
+        this.layers = config.layers;
+        this.collisionLayer = config.collisionLayer;
+        this.isPaused = false;
+        this.isCutscenePlaying = false;
     }
 
     getTile(layer: number, column: number, row: number) {
         return this.layers[layer][row * this.cols + column];
     }
 
-    draw() {
-        // Draw the map here
-        if (this.ctx === null) return;
-        let sec = Math.floor(Date.now() / 1000);
-        if (sec !== this.currentSecond) {
-            this.currentSecond = sec;
-            this.framesLastSecond = this.frameCount;
-            this.frameCount = 1;
-        } else {
-            this.frameCount++;
-        }
+    fireEvent(event: any) {
+        const eventHandler = new GameEvent({
+            event: event,
+            map: this,
+        })
+        eventHandler.init();
+    }
 
-        for (let y = 0; y < this.mapH; y++) {
-            for (let x = 0; x < this.mapW; x++) {
-                switch (this.gameMap[((y * this.mapW) + x)]) {
-                    case 0:
-                        this.ctx.fillStyle = "lightgreen";
-                        break;
-                    default:
-                        this.ctx.fillStyle = "darkgreen";
-                        break;
-                }
-                this.ctx.fillRect(x * this.tileW, y * this.tileH, this.tileW, this.tileH);
+    async startCutscene(events: EventListener[]) {
+        for (let i = 0; i < events.length; i++) {
+            const emitter = new EventEmitter();
+
+            const logEvent = (event: string, data?: any) => {
+                console.log(`Event: ${event}, Data: ${data}`);
+            };
+
+            // Register an event listener
+            emitter.on('dataReceived', logEvent);
+
+            // Emit an event
+            emitter.emit('dataReceived', { message: 'Hello, World!' });
+
+            // Remove the event listener
+            emitter.off('dataReceived', logEvent);
+        }
+    }
+
+    isSpaceTaken(currentX: number, currentY: number, direction: string) {
+        const {x,y} = utils.nextPosition(currentX, currentY, direction);
+        if (this.walls[`${x},${y}`]) {
+            return true;
+        }
+        // Check for game objects at this position
+        return Object.values(this.gameObjects).find(obj => {
+            if (obj.positionX === x && obj.positionY === y) { return true; }
+            if (obj.intentPosition && obj.intentPosition[0] === x && obj.intentPosition[1] === y ) {
+                return true;
             }
+            return false;
+        })
+        return this.walls[`${x},${y}`] || false;
+    }
+
+    mountObjects() {
+        Object.keys(this.configObjects).forEach(key => {
+            let object = this.configObjects[key];
+            object.id = key;
+            
+            let instance;
+            if (object.type === "Person") {
+                instance = new Character(this.canvas, this.ctx, object);
+            }
+            this.gameObjects[key] = instance;
+            this.gameObjects[key].id = key;
+            instance.mount(this);
+
+        })
+        // Object.values(this.gameObjects).forEach(o => {
+
+        //     //TODO: determine if this object should actually mount
+        //     o.mount(this);
+
+        // })
+    }
+
+    checkForFootstepCutscene() {
+        const hero = this.gameObjects["hero"];
+        const match = this.cutsceneSpaces[ `${hero.positionX},${hero.positionY}` ];
+        if (!this.isCutscenePlaying && match) {
+            this.startCutscene( match[0].events )
         }
     }
 }
